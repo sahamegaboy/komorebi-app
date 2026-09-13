@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Komorebi — Колесо Достижений</title>
+  <meta name="theme-color" content="#1a211a">
+  <style>
+    :root {
+      --bg-color: #141a15;
+      --card-bg: #1c241e;
+      --accent: #d4a373;
+      --accent-gold: #e9c46a;
+      --text: #e6ebe0;
+      --text-dim: #8b9b8a;
+      --border: #2d382f;
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    /* Верхняя шапка */
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .kanji-title {
+      font-size: 0.9rem;
+      letter-spacing: 4px;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      opacity: 0.85;
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    /* Секция колеса */
+    .wheel-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 24px solid var(--accent-gold);
+      z-index: 10;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+    }
+
+    canvas {
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 0 0 6px var(--card-bg);
+      transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1);
+    }
+
+    /* Кнопка вращения */
+    .spin-btn {
+      background: linear-gradient(135deg, var(--accent-gold), var(--accent));
+      color: #121812;
+      border: none;
+      padding: 16px 44px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(212, 163, 115, 0.3);
+      cursor: pointer;
+      margin-bottom: 30px;
+      transition: transform 0.15s ease, opacity 0.2s;
+    }
+
+    .spin-btn:active {
+      transform: scale(0.96);
+    }
+
+    .spin-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Карточка управления плюшками */
+    .rewards-card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .rewards-card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text);
+    }
+
+    .reward-input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    input {
+      flex: 1;
+      background: #141a15;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 12px;
+      outline: none;
+      font-size: 0.95rem;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+    }
+
+    .add-btn {
+      background: var(--border);
+      color: var(--text);
+      border: none;
+      padding: 0 18px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .rewards-list {
+      list-style: none;
+      max-height: 180px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .rewards-list li {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.2rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    /* Модалка выигрыша */
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--accent-gold);
+      border-radius: var(--radius);
+      padding: 30px 24px;
+      text-align: center;
+      max-width: 320px;
+      width: 100%;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-box h3 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      color: var(--accent-gold);
+    }
+
+    .modal-box p {
+      font-size: 1.1rem;
+      margin-bottom: 24px;
+      color: var(--text);
+    }
+
+    .modal-box button {
+      background: var(--accent-gold);
+      border: none;
+      color: #121812;
+      padding: 12px 28px;
+      font-weight: 600;
+      border-radius: 14px;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="kanji-title">ご褒美 • 達成</div>
+    <h1>Колесо Наград</h1>
+  </header>
+
+  <div class="wheel-container">
+    <div class="wheel-pointer"></div>
+    <canvas id="wheel" width="640" height="640"></canvas>
+  </div>
+
+  <button id="spinBtn" class="spin-btn">Крутить колесо</button>
+
+  <div class="rewards-card">
+    <h2>Список наград <span style="font-size: 0.8rem; color: var(--text-dim);" id="count">0</span></h2>
+    <div class="reward-input-group">
+      <input type="text" id="rewardInput" placeholder="Новая награда..." maxlength="25">
+      <button id="addBtn" class="add-btn">+</button>
+    </div>
+    <ul id="rewardsList" class="rewards-list"></ul>
+  </div>
+
+  <div id="resultModal" class="modal">
+    <div class="modal-box">
+      <div style="font-size: 2.5rem; margin-bottom: 12px;">🌿</div>
+      <h3>Твоя награда!</h3>
+      <p id="winnerResult">Вкусняшка</p>
+      <button onclick="closeModal()">Забрать</button>
+    </div>
+  </div>
+
+  <script>
+    // Начальный список наград
+    let rewards = JSON.parse(localStorage.getItem('my_rewards')) || [
+      "Вкусный десерт",
+      "30 мин отдыха",
+      "Массаж / Релакс",
+      "Любимый напиток",
+      "Серия сериала",
+      "Прогулка без дел"
+    ];
+
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    const input = document.getElementById('rewardInput');
+    const addBtn = document.getElementById('addBtn');
+    const list = document.getElementById('rewardsList');
+    const modal = document.getElementById('resultModal');
+    const winnerText = document.getElementById('winnerResult');
+
+    // Палитра секторов: лесные и бамбуковые оттенки
+    const palette = ['#233026', '#314234', '#3e5241', '#4b614f', '#2a3a2d', '#586f5c'];
+
+    let currentRotation = 0;
+    let isSpinning = false;
+
+    function saveAndDraw() {
+      localStorage.setItem('my_rewards', JSON.stringify(rewards));
+      document.getElementById('count').textContent = rewards.length;
+      drawWheel();
+      renderList();
+    }
+
+    function drawWheel() {
+      const num = rewards.length;
+      if (num === 0) return;
+      const arc = (2 * Math.PI) / num;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const r = cx - 10;
+
+      rewards.forEach((text, i) => {
+        const angle = i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = palette[i % palette.length];
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, angle, angle + arc);
+        ctx.fill();
+        ctx.strokeStyle = '#1c241e';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Текст сектора
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#e6ebe0";
+        ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.fillText(text, r - 30, 8);
+        ctx.restore();
+      });
+
+      // Центральный деревянный медальон
+      ctx.beginPath();
+      ctx.arc(cx, cy, 46, 0, 2 * Math.PI);
+      ctx.fillStyle = '#141a15';
+      ctx.fill();
+      ctx.strokeStyle = '#d4a373';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+
+      // Кандзи по центру (Дзен / Награда)
+      ctx.fillStyle = '#e9c46a';
+      ctx.font = "bold 26px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("福", cx, cy + 2);
+    }
+
+    function renderList() {
+      list.innerHTML = '';
+      rewards.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>${item}</span>
+          <button class="delete-btn" onclick="deleteReward(${index})">×</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    function deleteReward(index) {
+      if (rewards.length <= 2) {
+        alert("Оставь хотя бы 2 награды для колеса!");
+        return;
+      }
+      rewards.splice(index, 1);
+      saveAndDraw();
+    }
+
+    addBtn.addEventListener('click', () => {
+      const val = input.value.trim();
+      if (val) {
+        rewards.push(val);
+        input.value = '';
+        saveAndDraw();
+      }
+    });
+
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addBtn.click();
+    });
+
+    spinBtn.addEventListener('click', () => {
+      if (isSpinning || rewards.length < 2) return;
+      isSpinning = true;
+      spinBtn.disabled = true;
+
+      // Рассчитываем случайный сектор
+      const prizeIndex = Math.floor(Math.random() * rewards.length);
+      const arcDegree = 360 / rewards.length;
+      
+      // Вычисляем угол, чтобы стрелка сверху попала ровно на сектор
+      const extraTurns = 5 * 360; 
+      const targetAngle = 270 - (prizeIndex * arcDegree + arcDegree / 2);
+      const totalRotation = extraTurns + (targetAngle - (currentRotation % 360) + 360) % 360;
+      
+      currentRotation += totalRotation;
+      canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+      setTimeout(() => {
+        isSpinning = false;
+        spinBtn.disabled = false;
+        winnerText.textContent = rewards[prizeIndex];
+        modal.style.display = 'flex';
+      }, 4000);
+    });
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    saveAndDraw();
+  </script>
+</body>
+</html>
