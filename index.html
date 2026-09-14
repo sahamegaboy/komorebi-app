@@ -2,377 +2,242 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <title>Komorebi — Система Достижений</title>
-  <meta name="theme-color" content="#0a0a0f">
-  <link rel="icon" href="icon.jpg">
-  <link rel="apple-touch-icon" href="icon.jpg">
-  <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Komorebi</title>
   <style>
     :root {
-      --bg: #0a0a0f;
-      --card-bg: #151520;
-      --accent: #5e28ff; /* Фиолетовый Годжо */
-      --accent-light: #00d2ff; /* Синий (Шесть глаз) */
-      --text: #e0e0e0;
-      --text-dim: #7a7a8c;
-      --border: #2a2a3d;
-      --green: #00e676;
+      --bg: #111111;
+      --card-bg: rgba(25, 25, 30, 0.6);
+      --text: #ffffff;
+      --accent: #ff3366; /* Цвет центральной линии */
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
     
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; }
-
-    /* Верхняя панель */
-    .top-bar {
-      position: sticky; top: 0; background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(10px);
-      display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;
-      border-bottom: 1px solid var(--border); z-index: 50;
+    body { 
+      background-color: var(--bg);
+      background-image: url('cd1fc87324216a811b0e6dfa2b41be41.jpg'); 
+      background-size: cover;
+      background-position: center;
+      color: var(--text); 
+      display: flex; 
+      flex-direction: column; 
+      height: 100vh;
+      overflow: hidden;
     }
-    .top-bar h1 { font-size: 1.2rem; background: linear-gradient(90deg, var(--accent-light), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .energy-badge { background: var(--card-bg); border: 1px solid var(--accent); padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 1.1rem; box-shadow: 0 0 10px rgba(94, 40, 255, 0.4); }
 
-    /* Контент вкладок */
-    .tab-content { display: none; padding: 20px; animation: fadeIn 0.2s ease; }
-    .tab-content.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Секция Колеса */
-    .wheel-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
-    .wheel-wrapper { position: relative; width: 300px; height: 300px; margin-bottom: 30px; }
-    .wheel-pointer {
-      position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-      width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid var(--accent-light); z-index: 10;
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding-top: 50px;
+      backdrop-filter: blur(8px); /* Легкое размытие, чтобы текст читался лучше */
     }
-    canvas { width: 100%; height: 100%; filter: drop-shadow(0 0 20px rgba(94, 40, 255, 0.2)); transition: transform 4s cubic-bezier(0.1, 0.9, 0.2, 1); }
+
+    /* Рулетка */
+    .roulette-wrapper {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      background: var(--card-bg);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+
+    .selector-line {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent);
+      z-index: 10;
+      box-shadow: 0 0 10px var(--accent);
+      transform: translateX(-50%);
+    }
+
+    .track {
+      display: flex;
+      gap: 10px;
+      transition: transform 5s cubic-bezier(0.1, 0.9, 0.2, 1);
+      /* Сдвигаем влево для старта, чтобы крутилось слева направо */
+      transform: translateX(-5000px);
+    }
+
+    .item {
+      min-width: 140px;
+      height: 90px;
+      background: rgba(40, 40, 45, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-align: center;
+      padding: 10px;
+      flex-shrink: 0;
+    }
+
+    .controls {
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    button {
+      background: rgba(255, 255, 255, 0.9);
+      color: #000000;
+      border: none;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
     
-    .btn { background: linear-gradient(135deg, var(--accent), #3a0ca3); color: white; border: none; padding: 14px 24px; border-radius: 14px; font-size: 1.1rem; font-weight: bold; width: 100%; cursor: pointer; transition: transform 0.1s; box-shadow: 0 4px 15px rgba(94, 40, 255, 0.4); }
-    .btn:active { transform: scale(0.95); }
-    .btn:disabled { background: var(--card-bg); color: var(--text-dim); box-shadow: none; cursor: not-allowed; }
+    button:active { transform: scale(0.97); }
+
+    /* Панель добавления наград */
+    .edit-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: auto;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+    }
+
+    input {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+    }
     
-    /* Списки и Карточки */
-    .section-title { font-size: 1.1rem; color: var(--text-dim); margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; }
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .card-info h3 { font-size: 1.1rem; margin-bottom: 4px; }
-    .card-info p { font-size: 0.85rem; color: var(--text-dim); }
-    .action-btn { background: var(--border); color: var(--text); border: none; padding: 8px 16px; border-radius: 10px; font-weight: bold; }
-    .action-btn.done { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid var(--green); }
+    input::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
 
-    /* Инпуты */
-    .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
-    input, textarea { flex: 1; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 12px 16px; border-radius: 12px; outline: none; font-size: 1rem; }
-    input:focus, textarea:focus { border-color: var(--accent-light); }
-    textarea { resize: vertical; min-height: 80px; }
+    .reward-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
 
-    /* Нижнее меню */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0 24px; z-index: 100; }
-    .nav-item { background: none; border: none; color: var(--text-dim); font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 25%; }
-    .nav-item.active { color: var(--accent-light); }
-    .nav-item span { font-size: 1.5rem; }
-
-    /* Модалка */
-    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
-    .modal-box { background: var(--card-bg); border: 1px solid var(--accent-light); border-radius: 20px; padding: 30px 24px; text-align: center; width: 100%; max-width: 340px; }
-    .modal-box h2 { color: var(--accent-light); margin-bottom: 10px; }
+    .reward-tag {
+      background: rgba(255,255,255,0.15);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
+  <div class="app-container">
+    
+    <div class="roulette-wrapper">
+      <div class="selector-line"></div>
+      <div class="track" id="track"></div>
+    </div>
 
-  <div class="top-bar">
-    <h1>領域展開 (Komorebi)</h1>
-    <div class="energy-badge">🌀 <span id="energyCount">0</span></div>
-  </div>
+    <div class="controls">
+      <button id="spinBtn">Открыть кейс</button>
+      <div id="resultText" style="text-align:center; font-size: 1.2rem; min-height: 28px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);"></div>
+    </div>
 
-  <!-- ВКЛАДКА 1: КОЛЕСО -->
-  <div id="tab-wheel" class="tab-content active">
-    <div class="wheel-container">
-      <div class="wheel-wrapper">
-        <div class="wheel-pointer"></div>
-        <canvas id="wheel" width="600" height="600"></canvas>
+    <div class="edit-panel">
+      <div style="font-size: 0.9rem; color: #ccc;">Мои награды:</div>
+      <div class="reward-list" id="rewardList"></div>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <input type="text" id="newReward" placeholder="Новая награда..." style="flex:1;">
+        <button id="addBtn" style="padding: 14px 20px;">+</button>
       </div>
-      <button id="spinBtn" class="btn">Крутить колесо (1 🌀)</button>
-    </div>
-    
-    <div class="section-title">Настройки наград</div>
-    <div class="input-group">
-      <input type="text" id="rewardInput" placeholder="Добавить награду...">
-      <button class="action-btn" onclick="addReward()">+</button>
-    </div>
-    <div id="rewardsList"></div>
-  </div>
-
-  <!-- ВКЛАДКА 2: ЦЕЛИ И ПРИВЫЧКИ -->
-  <div id="tab-tasks" class="tab-content">
-    <div class="section-title">Ежедневные привычки (+1 🌀)</div>
-    <div class="card">
-      <div class="card-info"><h3>Чтение / Учеба</h3><p>Минимум 20 минут</p></div>
-      <button class="action-btn" onclick="completeTask('habit1', 1, this)">Выполнить</button>
-    </div>
-    <div class="card">
-      <div class="card-info"><h3>Тренировка</h3><p>Спорт / Зарядка</p></div>
-      <button class="action-btn" onclick="completeTask('habit2', 1, this)">Выполнить</button>
     </div>
 
-    <div class="section-title">Среднесрочные цели (+3 🌀)</div>
-    <div class="card">
-      <div class="card-info"><h3>Новый сингл (Кубик)</h3><p>Побить свой рекорд</p></div>
-      <button class="action-btn" onclick="completeTask('cube', 3, this, false)">Сделал!</button>
-    </div>
-
-    <div class="section-title">Долгосрочные цели (+10 🌀)</div>
-    <div class="card">
-      <div class="card-info"><h3>Закрыть крупный проект</h3><p>То, что давно откладывал</p></div>
-      <button class="action-btn" onclick="completeTask('longterm', 10, this, false)">Достигнуто!</button>
-    </div>
-  </div>
-
-  <!-- ВКЛАДКА 3: ОБУЧЕНИЕ -->
-  <div id="tab-learn" class="tab-content">
-    <div class="section-title">Что я хочу узнать нового?</div>
-    <div class="input-group">
-      <input type="text" id="learnInput" placeholder="Тема, навык, книга...">
-      <button class="action-btn" onclick="addLearnItem()">Добавить</button>
-    </div>
-    <div id="learnList"></div>
-  </div>
-
-  <!-- ВКЛАДКА 4: ОТЧЕТЫ И ИСТОРИЯ -->
-  <div id="tab-reports" class="tab-content">
-    <div class="section-title">Добавить отчет / инсайт</div>
-    <div class="input-group">
-      <textarea id="reportInput" placeholder="Запиши сюда свои мысли, отчет за день или идею..."></textarea>
-    </div>
-    <button class="btn" style="margin-bottom: 20px;" onclick="addReport()">Сохранить запись</button>
-    
-    <div class="section-title">Лента отчетов</div>
-    <div id="reportsList"></div>
-
-    <div class="section-title" style="margin-top: 30px;">История наград</div>
-    <div id="historyList"></div>
-  </div>
-
-  <!-- Нижняя навигация -->
-  <div class="bottom-nav">
-    <button class="nav-item active" onclick="switchTab('tab-wheel', this)"><span>🎡</span>Колесо</button>
-    <button class="nav-item" onclick="switchTab('tab-tasks', this)"><span>🎯</span>Задачи</button>
-    <button class="nav-item" onclick="switchTab('tab-learn', this)"><span>🧠</span>Изучить</button>
-    <button class="nav-item" onclick="switchTab('tab-reports', this)"><span>📜</span>Отчеты</button>
-  </div>
-
-  <!-- Модалка -->
-  <div id="modal" class="modal">
-    <div class="modal-box">
-      <h2 id="modalTitle">Ура!</h2>
-      <p id="modalDesc" style="font-size: 1.2rem; margin: 20px 0;">Текст</p>
-      <button class="btn" onclick="closeModal()">Супер</button>
-    </div>
   </div>
 
   <script>
-    // База данных приложения
-    let state = JSON.parse(localStorage.getItem('komorebi_state')) || {
-      energy: 3, 
-      rewards: ["Вкусняшка", "30 мин Youtube", "Массаж", "Выходной вечер", "Любимый фильм", "Прогулка"],
-      history: [],
-      learn: [],
-      reports: [],
-      lastHabitsDate: ""
-    };
-
-    const canvas = document.getElementById('wheel');
-    const ctx = canvas.getContext('2d');
-    let currentRotation = 0;
+    let rewards = JSON.parse(localStorage.getItem('my_loot')) || ["Вкусняшка", "Отдых", "Массаж", "Новая шмотка"];
+    const track = document.getElementById('track');
+    const itemWidth = 150; // 140px width + 10px gap
     let isSpinning = false;
+    let currentPos = -5000; 
 
-    // Палитра (Вайб Годжо/Киберпанк)
-    const colors = ['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#5e28ff', '#00d2ff'];
-
-    function saveState() {
-      localStorage.setItem('komorebi_state', JSON.stringify(state));
-      updateUI();
+    function renderTags() {
+      document.getElementById('rewardList').innerHTML = rewards.map((r, i) => 
+        `<div class="reward-tag">${r} <span style="color:#ff4444; cursor:pointer;" onclick="removeReward(${i})">✕</span></div>`
+      ).join('');
     }
 
-    function updateUI() {
-      document.getElementById('energyCount').innerText = state.energy;
-      document.getElementById('spinBtn').innerText = `Крутить колесо (1 🌀)`;
-      document.getElementById('spinBtn').disabled = state.energy < 1 || state.rewards.length < 2;
-      drawPolygonWheel();
-      renderLists();
+    function removeReward(index) {
+      if(rewards.length < 2) return;
+      rewards.splice(index, 1);
+      localStorage.setItem('my_loot', JSON.stringify(rewards));
+      renderTags();
     }
 
-    // Рисуем крутой многоугольник вместо круга!
-    function drawPolygonWheel() {
-      const num = state.rewards.length;
-      if (num < 2) return;
-      const angleStep = (2 * Math.PI) / num;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const r = cx - 10;
-
-      for (let i = 0; i < num; i++) {
-        const startAngle = i * angleStep;
-        const endAngle = startAngle + angleStep;
-        
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        // Рисуем прямой отрезок вместо дуги - получается многоугольник!
-        ctx.lineTo(cx + r * Math.cos(startAngle), cy + r * Math.sin(startAngle));
-        ctx.lineTo(cx + r * Math.cos(endAngle), cy + r * Math.sin(endAngle));
-        ctx.closePath();
-        
-        ctx.fillStyle = colors[i % colors.length];
-        ctx.fill();
-        ctx.strokeStyle = '#2a2a3d';
-        ctx.lineWidth = 5;
-        ctx.stroke();
-
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(startAngle + angleStep / 2);
-        ctx.textAlign = "right";
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 24px sans-serif";
-        ctx.fillText(state.rewards[i], r - 20, 8);
-        ctx.restore();
+    document.getElementById('addBtn').onclick = () => {
+      const val = document.getElementById('newReward').value.trim();
+      if(val) {
+        rewards.push(val);
+        localStorage.setItem('my_loot', JSON.stringify(rewards));
+        document.getElementById('newReward').value = '';
+        renderTags();
       }
-
-      // Центр
-      ctx.beginPath(); ctx.arc(cx, cy, 40, 0, 2*Math.PI);
-      ctx.fillStyle = '#0a0a0f'; ctx.fill();
-      ctx.strokeStyle = '#00d2ff'; ctx.lineWidth = 4; ctx.stroke();
-      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
-      ctx.font = "bold 20px sans-serif"; ctx.fillText("🌀", cx, cy);
-    }
-
-    // Вращение
-    document.getElementById('spinBtn').onclick = () => {
-      if (isSpinning || state.energy < 1) return;
-      isSpinning = true;
-      state.energy -= 1;
-      saveState();
-
-      const prizeIndex = Math.floor(Math.random() * state.rewards.length);
-      const arcDegree = 360 / state.rewards.length;
-      const extraTurns = 5 * 360; 
-      const targetAngle = 270 - (prizeIndex * arcDegree + arcDegree / 2);
-      const totalRotation = extraTurns + (targetAngle - (currentRotation % 360) + 360) % 360;
-      
-      currentRotation += totalRotation;
-      canvas.style.transform = `rotate(${currentRotation}deg)`;
-
-      // Вибрация (если поддерживает телефон)
-      let vibroInterval = setInterval(() => { if(navigator.vibrate) navigator.vibrate(15); }, 200);
-
-      setTimeout(() => {
-        clearInterval(vibroInterval);
-        isSpinning = false;
-        const prize = state.rewards[prizeIndex];
-        
-        // Добавляем в историю
-        const date = new Date().toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'});
-        state.history.unshift({date, text: prize});
-        if(state.history.length > 20) state.history.pop();
-        saveState();
-
-        showModal("Твой лут!", `Ты выиграл: <b>${prize}</b>`);
-        if(navigator.vibrate) navigator.vibrate([200, 100, 200]); // Длинная вибрация победы
-      }, 4000);
     };
 
-    // Управление наградами
-    function addReward() {
-      const v = document.getElementById('rewardInput').value.trim();
-      if(v) { state.rewards.push(v); document.getElementById('rewardInput').value=''; saveState(); }
-    }
-    function deleteReward(i) { state.rewards.splice(i, 1); saveState(); }
+    document.getElementById('spinBtn').onclick = () => {
+      if(isSpinning || rewards.length < 2) return;
+      isSpinning = true;
+      document.getElementById('resultText').innerText = '';
 
-    // Управление задачами (Привычки)
-    function completeTask(id, points, btnElement, isDaily = true) {
-      state.energy += points;
-      btnElement.innerText = "✓ Получено";
-      btnElement.classList.add('done');
-      btnElement.disabled = true;
-      saveState();
-      showModal("Энергия получена!", `Ты заработал +${points} 🌀\nМожешь крутить колесо!`);
-    }
+      // Генерируем временную ленту
+      let stripHTML = '';
+      const totalItems = 60;
+      const targetIndex = 50; 
+      const winner = rewards[Math.floor(Math.random() * rewards.length)];
 
-    // Управление Обучением
-    function addLearnItem() {
-      const v = document.getElementById('learnInput').value.trim();
-      if(v) { state.learn.unshift({text: v, done: false}); document.getElementById('learnInput').value=''; saveState(); }
-    }
-    function completeLearn(i) {
-      state.learn[i].done = true;
-      state.energy += 5; // За обучение даем 5 энергии!
-      saveState();
-      showModal("Мозг прокачан!", "За новый навык ты получаешь +5 🌀!");
-    }
-    function deleteLearn(i) { state.learn.splice(i, 1); saveState(); }
-
-    // Отчеты
-    function addReport() {
-      const v = document.getElementById('reportInput').value.trim();
-      if(v) { 
-        const date = new Date().toLocaleDateString('ru-RU', {day: 'numeric', month: 'long', hour: '2-digit', minute:'2-digit'});
-        state.reports.unshift({date, text: v});
-        document.getElementById('reportInput').value=''; 
-        saveState(); 
-        showModal("Запись сохранена", "Твой отчет добавлен в базу.");
+      for(let i = 0; i < totalItems; i++) {
+        let text = (i === targetIndex) ? winner : rewards[Math.floor(Math.random() * rewards.length)];
+        stripHTML += `<div class="item">${text}</div>`;
       }
-    }
+      track.innerHTML = stripHTML;
 
-    // Отрисовка списков
-    function renderLists() {
-      document.getElementById('rewardsList').innerHTML = state.rewards.map((r,i) => `
-        <div class="card" style="padding: 10px 16px">
-          <span>${r}</span> <button class="action-btn" onclick="deleteReward(${i})">✕</button>
-        </div>`).join('');
+      // Сбрасываем позицию влево
+      track.style.transition = 'none';
+      track.style.transform = `translateX(-6000px)`;
+      
+      // Крутим
+      setTimeout(() => {
+        const screenCenter = window.innerWidth / 2;
+        const targetOffset = -(targetIndex * itemWidth) + screenCenter - (140 / 2); 
+        
+        track.style.transition = 'transform 5s cubic-bezier(0.1, 0.9, 0.2, 1)';
+        track.style.transform = `translateX(${targetOffset}px)`;
 
-      document.getElementById('learnList').innerHTML = state.learn.map((l,i) => `
-        <div class="card">
-          <div class="card-info" style="text-decoration: ${l.done?'line-through':'none'}; opacity: ${l.done?0.5:1}"><h3>${l.text}</h3></div>
-          ${!l.done ? `<button class="action-btn" onclick="completeLearn(${i})">Изучил (+5🌀)</button>` : `<button class="action-btn" onclick="deleteLearn(${i})">Удалить</button>`}
-        </div>`).join('');
+        setTimeout(() => {
+          document.getElementById('resultText').innerText = `Выпало: ${winner}`;
+          isSpinning = false;
+        }, 5100);
+      }, 50);
+    };
 
-      document.getElementById('reportsList').innerHTML = state.reports.map(r => `
-        <div class="card" style="flex-direction: column; align-items: flex-start;">
-          <p style="color: var(--accent-light); margin-bottom: 8px;">${r.date}</p>
-          <div style="font-size: 1rem; line-height: 1.4; white-space: pre-wrap;">${r.text}</div>
-        </div>`).join('');
-
-      document.getElementById('historyList').innerHTML = state.history.map(h => `
-        <div class="card" style="padding: 10px 16px;">
-          <span>${h.text}</span> <span style="color: var(--text-dim)">${h.date}</span>
-        </div>`).join('');
-    }
-
-    // Переключение вкладок
-    function switchTab(tabId, btnElement) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      btnElement.classList.add('active');
-    }
-
-    // Модалка
-    function showModal(title, desc) {
-      document.getElementById('modalTitle').innerText = title;
-      document.getElementById('modalDesc').innerHTML = desc;
-      document.getElementById('modal').style.display = 'flex';
-    }
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
-
-    // Проверка нового дня для сброса привычек
-    const today = new Date().toDateString();
-    if(state.lastHabitsDate !== today) {
-      // Здесь можно добавить логику сброса кнопок привычек
-      state.lastHabitsDate = today;
-      saveState();
-    }
-
-    updateUI();
+    renderTags();
   </script>
 </body>
 </html>
